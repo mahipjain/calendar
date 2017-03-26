@@ -5,26 +5,36 @@
 	<title></title>
 	<link rel="stylesheet" type="text/css" href="{% static "calendarapp/base.css" %}">
 	<link rel="stylesheet" type="text/css" href="{% static "calendarapp/font-awesome-4.7.0/css/font-awesome.min.css" %}">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,400" rel="stylesheet">
 	<script type="text/javascript" src="{% static "calendarapp/jquery-3.2.0.min.js" %}"></script>
 	<script type="text/javascript" src="{% static "calendarapp/base.js" %}"></script>
 </head>
 <body>
-<div class="left-container">
-	<div>
-	<span id="curr-month"></span>
-	<span id="curr-year"></span>
-	<table id="curr-month-cal"></table>
+	<div class="left-container">
+		<div>
+			<i class="fa fa-bars" aria-hidden="true"></i>
+		</div>
+		<div class="small-cal">
+			<div class="cal-head">
+			<span id="curr-month"></span>
+			<span id="curr-year"></span>
+			</div>
+			<table id="curr-month-cal" cellspacing="0" cellpadding="0"></table>
+		</div>
+		<div id='clock'></div>
+		<div id="todays-events">
+			<h3>Today</h3>
+		</div>
 	</div>
-	<div id='clock'></div>
-	<div id="todays-events"></div>
-</div>
-<div class="main-container">
-	<i class="fa fa-chevron-up" aria-hidden="true" id="prev-month"></i>
-	<i class="fa fa-chevron-down" aria-hidden="true" id="next-month"></i>
-	<label id="month"></label>
-	<label id="year"></label>
-	<table class="calendar">
-	</table>
-</div>
+	<div class="main-container">
+		<div class="cal-head">
+		<i class="fa fa-chevron-up" aria-hidden="true" id="prev-month"></i>
+		<i class="fa fa-chevron-down" aria-hidden="true" id="next-month"></i>
+		<label id="month"></label>
+		<label id="year"></label>
+		</div>
+		<table class="calendar" cellspacing="0" cellpadding="0">
+		</table>
+	</div>
 </body>
 </html>

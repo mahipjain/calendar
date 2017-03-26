@@ -1,6 +1,6 @@
-@font-face{
+/*@font-face{
     src=url(Roboto/Roboto-Light.ttf)
-}
+}*/
 
 html{
     height: 100%;
@@ -25,17 +25,17 @@ body{
 
 .popup{
     display: none;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 8px 0;
-    position: relative;
+    background-color: #fff;
+    color: #b3b3b3;
+    text-align: left;
+    border-radius: 2px;
+    padding: 8px;
+    position: absolute;
     z-index: 1;
-    bottom: 38px;
+    border: 1px solid #ff8787;
 }
 
-.popup::after {
+/*.popup::after {
     content: "";
     position: absolute;
     top: 100%;
@@ -44,7 +44,7 @@ body{
     border-width: 5px;
     border-style: solid;
     border-color: #555 transparent transparent transparent;
-}
+}*/
 
 .popup *{
 	display: block;
@@ -65,3 +65,138 @@ body{
     from {opacity: 0;}
     to {opacity:1 ;}
 }*/
+
+.popup-date{
+    color: #ff8787;
+}
+
+.left-container i{
+    margin: 10px;
+}
+
+.small-cal{
+    margin: 30px 20px;
+}
+
+.small-cal .cal-head{
+    font-size: 12px;
+    padding-left: 6px;
+}
+
+.small-cal table{
+    font-size: 10px;
+    margin-top: 8px;
+}
+.small-cal th{
+    font-weight: normal;
+}
+
+.small-cal td, .small-cal th{
+    padding: 4px 5px;
+}
+
+.small-cal .month-theme{
+    background-color: #2bc493;
+}
+
+.small-cal .today{
+    background-color: #fff;
+    color: #2bc493;
+}
+
+#clock{
+    font-size: 60px;
+    text-align: center;
+    font-weight: 100;
+}
+
+#todays-events h3{
+    font-size: 12px;
+    font-weight: normal;
+    margin-left: 30px;
+    margin-bottom: 6px;
+}
+
+#todays-events ul{
+    background-color: #2bc493;
+    /*padding-left: 30px;*/
+    font-size: 12px;
+    margin: 0px;
+    padding: 5px 0 5px 30px;
+}
+
+.events-list li{
+    padding: 5px 0;
+    border-right: 4px solid #ff8787;
+}
+.event-time{
+    float: right;
+    padding-right: 20px;
+}
+
+li{
+    list-style-type: none;
+    font-weight: normal;
+}
+
+.main-container .cal-head{
+    color:#2ed39e;
+    text-align: center;
+    padding: 15px;
+    border-bottom: 1px solid #e5e6e7;
+    padding: 15px;
+}
+
+.main-container .calendar{
+    margin:0 20px;
+    width: calc(100% - 40px);
+    text-align: left;
+    height: calc(100% - 50px);
+}
+
+.main-container td{
+    border: 1px solid #e5e6e7;
+    width: 14%;
+    vertical-align: top;
+    padding: 10px;
+}
+.main-container th{
+    border-bottom: 1px solid #e5e6e7;
+    width: 14%
+}
+
+.main-container .day-names{
+    height: 8%;
+}
+
+#event_name{
+
+}
+
+input{
+    margin: 5px 5px 5px 0;
+    padding: 5px 10px;
+    border-radius: 2px;
+    border: 1px solid #e5e6e7;
+}
+
+input[type='checkbox'], input[type='date'], input[type='time'],input[type='button']{
+    display: inline;
+}
+
+textarea{
+    margin: 5px 5px 5px 0;
+    padding: 5px 10px;
+    border-radius: 2px;
+    border: 1px solid #e5e6e7;
+}
+
+.submit-btn{
+    float: right;
+    background-color: #ff8787;
+    color: #fff;
+}
+
+.close-btn{
+    float: right;
+}

@@ -1,7 +1,7 @@
 $( document ).ready(function() {
 	var now = new Date();
 	$('.calendar')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear());
-	$('#curr-month-cal')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear(), 'short');
+	$('#curr-month-cal')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear(), 'small');
 	$('#curr-month')[0].innerHTML = monthName[now.getMonth()];
 	$('#curr-year')[0].innerHTML = now.getFullYear();
 	startTime();
@@ -26,14 +26,15 @@ $( document ).ready(function() {
 			$(this).find('.popup-cont').html(popupHtml);
 			console.log($(this).attr('id'));
 			var d = new Date($(this).attr('id'));
-			$(this).find('.popup-date').html(d);
+			var long_date = d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
+			$(this).find('.popup-date').html(long_date);
 			$('#event-submit').attr('onclick', 'validate("'+d+'")');
 			$('.popup').show('fast');
 		}
 	});
-
+	//close popup
 	$(document).click(function(event) { 
-    if(!$(event.target).closest('.date').length && !$(event.target).closest('.popup').length) {
+    if(!$(event.target).closest('.date').length) {
         if($('.popup').is(":visible")) {
             $('.popup').hide('fast');
             $('.popup-cont').html('');
@@ -42,12 +43,19 @@ $( document ).ready(function() {
     }        
 	});
 
-	get_events_list(Date());
+	get_events_list();
 });
 
-function get_events_list(date){
+function closePopup(e){
+	$(e).closest('.popup').hide('fast');
+	$(e).closest('.popup-cont').html('');
+	console.log(e);
+}
+
+function get_events_list(date = ''){
 	console.log(date);
-	var d = new Date(date);
+	if(date!='') var d = new Date(date);
+	else d = new Date();
 	var elem_id = d.toLocaleDateString('en-US');
 	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
 	console.log(d);
@@ -60,12 +68,14 @@ function get_events_list(date){
 		success: function(data){
 			data = JSON.parse(data);
 			console.log(data.length);
-			var html = '<ul>';
+			var html = '<ul class="events-list">';
 			for(var i =0; i<data.length; i++){
-				html += '<li>'+data[i].name+' '+data[i].start_time+'</li>';
+				html += '<li><span class="event-name">\
+				'+data[i].name+'</span><span class="event-time">'+data[i].start_time+'</span></li>';
 			}
 			html+= '</ul>';
-			$('[id="'+elem_id+'"]').append(html);
+			if(date != '') $('[id="'+elem_id+'"]').append(html);
+			else $('#todays-events').append(html);
 		}
 	});
 }
@@ -147,18 +157,21 @@ monthName[11] = "December";
 
 var popupHtml = '<div class="popup">\
 									<form>\
+										<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
 										<h3 class="popup-date">Wednesday, 15 June 2016</h3>\
 										<input type="text" id="event_name" placeholder="Event Name">\
 										<input type="text" id="location" placeholder="Location">\
 										<label>Starts</label>\
+										<input type="date" id="start_date">\
 										<input type="time" id="start_time">\
 										<label>Ends</label>\
-										<input type="time" id="end_time">\
-										<input type="checkbox" id="all_day">\
+										<input type="date" id="end_date">\
+										<input type="time" id="end_time"><br>\
+										<input type="checkbox" id="all_day">All Day\
 										<label>Description</label>\
 										<textarea id="description"></textarea>\
 										<input type="button" value="Cancel">\
-										<input type="button" value="Save" id="event-submit">\
+										<input type="button" value="Save" id="event-submit" class="submit-btn">\
 									</form>\
 								</div>';
 
@@ -168,8 +181,9 @@ function getCalendar(month, year, type='long') {
 	var d = new Date(year,month,1);
 	var day = d.getDay();
 	var totalDays = noOfDays(month,year);
+	var now = new Date();
 	if(type=='long'){
-	var html = "<tr>\
+	var html = "<tr class='day-names'>\
 			<th>Sunday</th>\
 			<th>Monday</th>\
 			<th>Tuesday</th>\
@@ -180,7 +194,7 @@ function getCalendar(month, year, type='long') {
 		</tr>";
 	}
 	else{
-		var html = "<tr>\
+		var html = "<tr class='day-names'>\
 			<th>Su</th>\
 			<th>Mo</th>\
 			<th>Tu</th>\
@@ -199,10 +213,22 @@ function getCalendar(month, year, type='long') {
 			}
 			else if(j<=totalDays+2){
 				if(type=='long'){
-				html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"' class='date'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";
+					if(j-day+1 == now.getDate()){
+						html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"'\
+						class='date month-theme today'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";
+					}
+					else{
+						html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"'\
+						class='date month-theme'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";	
+					}
 				}
 				else{
-				html += "<td>"+ (j-day+1) +"<div class='popup-cont'></div></td>";
+				if(j-day+1 == now.getDate()){
+					html += "<td class='month-theme today'>"+ (j-day+1) +"</td>";
+					}
+				else{
+					html += "<td class='month-theme'>"+ (j-day+1) +"</td>";
+					}
 				}
 			}
 			else{
