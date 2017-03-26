@@ -9,7 +9,15 @@
 	<script type="text/javascript" src="{% static "calendarapp/base.js" %}"></script>
 </head>
 <body>
-<div class="left-nav"></div>
+<div class="left-container">
+	<div>
+	<span id="curr-month"></span>
+	<span id="curr-year"></span>
+	<table id="curr-month-cal"></table>
+	</div>
+	<div id='clock'></div>
+	<div id="todays-events"></div>
+</div>
 <div class="main-container">
 	<i class="fa fa-chevron-up" aria-hidden="true" id="prev-month"></i>
 	<i class="fa fa-chevron-down" aria-hidden="true" id="next-month"></i>

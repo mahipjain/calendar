@@ -1,14 +1,26 @@
-body{
-	margin: 0;
+@font-face{
+    src=url(Roboto/Roboto-Light.ttf)
 }
 
-.left-nav{
+html{
+    height: 100%;
+}
+body{
+	margin: 0;
+    height: 100%;
+    display: flex;
+    font-family: 'Roboto', sans-serif;
+}
+
+.left-container{
 	width: 15%;
 	background-color: #2ed39e;
+    color: #fff;
 }
 
 .main-container{
 	width: 85%;
+    color: #b3b3b3;
 }
 
 .popup{
