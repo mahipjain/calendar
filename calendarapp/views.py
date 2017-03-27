@@ -8,6 +8,8 @@ import json
 from django.utils import timezone
 from datetime import datetime
 
+#Wrote this function to check if a time slot is already booked.
+#Stopped using it because it causes problem while updating an event.
 def is_booked(s_datetime,e_datetime):
 	#events = Event.objects.filter(date=date).filter(end_time > start_time )
 	events = Event.objects.filter(Q(start_datetime__range = (s_datetime, e_datetime)) | Q(end_datetime__range = (s_datetime, e_datetime)))

@@ -10,6 +10,7 @@ body{
     height: 100%;
     display: flex;
     font-family: 'Roboto', sans-serif;
+    font-weight: 300;
 }
 
 .left-container{
@@ -169,22 +170,35 @@ li{
 }
 
 .main-container td{
-    border: 1px solid #e5e6e7;
+    border-right: 1px solid #e5e6e7;
+    border-bottom: 1px solid #e5e6e7;
     width: 14%;
     vertical-align: top;
     padding: 10px 0;
+    padding-left: 2px;
+    background-color: #f8f8f8;
+}
+
+.main-container td:last-child{
+    border-right: 0;
+}
+
+.main-container .month-theme{
+    background-color: #fff;
 }
 .main-container th{
     border-bottom: 1px solid #e5e6e7;
-    width: 14%
+    width: 14%;
+    padding-left: 2px;
+    font-weight: 300;
 }
 
 .main-container .day-names{
-    height: 8%;
+    height: 50px;
 }
 
-#event_name{
-
+.main-container tr{
+    height: 15%;
 }
 
 input{
@@ -221,4 +235,25 @@ textarea{
     padding: 0;
     margin: 0;
     margin-bottom: 4px;
+}
+
+.float-right{
+    float: right;
+}
+
+.active-day{
+    background-color: #f8f8f8;
+    font-weight: 400 !important;
+    border-bottom: 3px solid #2ed39e !important;
+    color: #777777;
+}
+
+.main-container .today{
+    background-color: #2ed39e;
+    color: #fff;
+}
+
+.main-container .today li{
+    color: #2ed39e;
+    background-color: #fff;
 }

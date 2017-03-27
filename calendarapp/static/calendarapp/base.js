@@ -12,6 +12,7 @@ $( document ).ready(function() {
 			selectedYear--;
 		}
 		$('.calendar')[0].innerHTML = getCalendar(selectedMonth, selectedYear);
+		show_popup();
 	});
 	$('#next-month').click(function(){
 		selectedMonth++;
@@ -20,24 +21,11 @@ $( document ).ready(function() {
 			selectedYear++;
 		}
 		$('.calendar')[0].innerHTML = 	getCalendar(selectedMonth, selectedYear);
+		show_popup();
 	});
 
 	//show popup
-	$('.date').click(function(event){
-		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
-			$(this).find('.popup-cont').html(popupHtml);
-			console.log($(this).attr('id'));
-			var d = new Date($(this).attr('id'));
-			var long_date = d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
-			$(this).find('.popup-date').html(long_date);
-			var input_date = inputDate(d);
-			console.log(input_date);
-			$(this).find('#start_date').val(input_date);
-			$(this).find('#end_date').val(input_date);
-			$('#event-submit').attr('onclick', 'validate("'+d+'")');
-			$('.popup').show('fast');
-		}
-	});
+	show_popup();
 	//close popup
 	$(document).click(function(event) { 
     if(!$(event.target).closest('.date').length) {
@@ -77,7 +65,26 @@ function eventDetails(id){
 													<input type="button" value="Delete" onclick="delete_event('+data.id+')">\
 													<input type="button" class="submit-btn" value="Edit" onclick="edit_event('+data.id+')">\
 												</div>';
-			$('#event'+id).parent().parent().find('.popup-cont').html(eventPopup);
+			$('#event'+id).parent().parent().parent().find('.popup-cont').html(eventPopup);
+			$('.popup').show('fast');
+		}
+	});
+}
+
+function show_popup(){
+	$('.date').click(function(event){
+		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
+			$(this).find('.popup-cont').html(popupHtml);
+			console.log($(this).attr('id'));
+			var d = new Date($(this).attr('id'));
+			var long_date = dayName[d.getDay()]+', '+ d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
+			console.log(long_date);
+			$(this).find('.popup-header').html(long_date);
+			var input_date = inputDate(d);
+			console.log(input_date);
+			$(this).find('#start_date').val(input_date);
+			$(this).find('#end_date').val(input_date);
+			$('#event-submit').attr('onclick', 'validate("'+d+'")');
 			$('.popup').show('fast');
 		}
 	});
@@ -89,6 +96,7 @@ function delete_event(event_id){
 		success: function(){
 			$('.popup').hide('fast');
       $('.popup-cont').html('');
+      refresh();
 		}
 	})
 }
@@ -103,18 +111,31 @@ function edit_event(event_id){
       var d = $('#event'+event_id).closest('.date').attr('id');
       d = new Date(d);
       console.log(d);
-      $('#event'+event_id).parent().parent().find('.popup-cont').html(popupHtml);
+      $('#event'+event_id).parent().parent().parent().find('.popup-cont').html(popupHtml);
       $('#event_name').val(data.name);
       $('#location').val(data.location);
       $('#start_date').val(data.start_date);
-      $('#start_time').val(data.start_time);
+      var temp = data.start_time.split(':');
+      var start_time = temp[0] + ':' + temp[1];
+      temp = data.end_time.split(':');
+      var end_time = temp[0] + ':' + temp[1];
+      $('#start_time').val(start_time);
       $('#end_date').val(data.end_date);
-      $('#end_time').val(data.end_time);
+      $('#end_time').val(end_time);
       $('#description').val(data.description);
       $('#event-submit').attr('onclick','validate("'+d+'",'+data.id+')');
 			$('.popup').show('fast');
 		}
 	})
+}
+
+function refresh(){
+	get_events_list();
+	for(var x = 0; x < $('.date').length; x++){
+		$elem = $('.date')[x];
+		var d = $($elem).attr('id');
+		get_events_list(d);
+	}
 }
 
 function toggleTimeFields(e){
@@ -163,8 +184,8 @@ function get_events_list(date = ''){
 				}
 			}
 			html+= '</ul>';
-			if(date != '') $('[id="'+elem_id+'"]').append(html);
-			else $('#todays-events').append(html);
+			if(date != '') $('[id="'+elem_id+'"]').find('.events-list').html(html);
+			else $('#todays-events').html(html);
 		}
 	});
 }
@@ -189,8 +210,6 @@ function add_event(date, event_id=null){
 	}
 	else {
 		var url = '/';
-		// start_time += ':00';
-		end_time +=':00';
 	}
 	$.ajax({
 		url: url,
@@ -202,11 +221,14 @@ function add_event(date, event_id=null){
 			start_date: start_date,
 			start_time: start_time + ':00',
 			end_date: end_date,
-			end_time: end_time,
+			end_time: end_time + ':00',
 			description: description,
 		},
 		success: function(data){
 			console.log(data);
+			$('.popup').hide('fast');
+			$('.popup-cont').html('');
+			refresh();
 		}
 	})
 }
@@ -251,13 +273,22 @@ var monthName = new Array();
 	monthName[2] = "March";
 	monthName[3] = "April";
 	monthName[4] = "May";
-monthName[5] = "June";
-monthName[6] = "July";
-monthName[7] = "August";
-monthName[8] = "September";
-monthName[9] = "October";
-monthName[10] = "November";
-monthName[11] = "December";
+	monthName[5] = "June";
+	monthName[6] = "July";
+	monthName[7] = "August";
+	monthName[8] = "September";
+	monthName[9] = "October";
+	monthName[10] = "November";
+	monthName[11] = "December";
+
+var dayName = new Array();
+	dayName[0] = "Sunday";
+	dayName[1] = "Monday";
+	dayName[2] = "Tuesday";
+	dayName[3] = "Wednesday";
+	dayName[4] = "Thrusday";
+	dayName[5] = "Friday";
+	dayName[6] = "Saturday";
 
 var popupHtml = '<div class="popup">\
 									<form>\
@@ -287,15 +318,13 @@ function getCalendar(month, year, type='long') {
 	var totalDays = noOfDays(month,year);
 	var now = new Date();
 	if(type=='long'){
-	var html = "<tr class='day-names'>\
-			<th>Sunday</th>\
-			<th>Monday</th>\
-			<th>Tuesday</th>\
-			<th>Wednesday</th>\
-			<th>Thrusday</th>\
-			<th>Friday</th>\
-			<th>Saturday</th>\
-		</tr>";
+	var html = "<tr class='day-names'>";
+	for(var x = 0; x<7; x++){
+		if(x==day && month == now.getMonth() && year == now.getFullYear()) html += "<th class='active-day'>"+dayName[x]+"</th>";
+		else html += "<th>"+dayName[x]+"</th>";
+	}
+			
+		html += "</tr>";
 	}
 	else{
 		var html = "<tr class='day-names'>\
@@ -308,36 +337,40 @@ function getCalendar(month, year, type='long') {
 			<th>Sa</th>\
 		</tr>";
 	}
-	for(var i = 0; i<5; i++){
+	for(var i = 0; i<6; i++){
 		html += "<tr>";
 		for(var j = i*7; j< (i+1)*7;j++){
 			if(j<day){
 				var date = new Date(year, month, 1);
 				html += "<td>"+relativeDate(date,j-day+1)+"</td>";
 			}
-			else if(j<=totalDays+2){
+			else if(j<totalDays+day){
 				if(type=='long'){
-					if(j-day+1 == now.getDate()){
+					if(j-day+1 == now.getDate() && month == now.getMonth() && year == now.getFullYear()){
 						html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"'\
-						class='date month-theme today'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";
+						class='date month-theme today'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div>\
+						<div class='events-list'></div>\
+						</td>";
 					}
 					else{
 						html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"'\
-						class='date month-theme'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";	
+						class='date month-theme'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div>\
+						<div class='events-list'></div>\
+						</td>";	
 					}
 					get_events_list(new Date(year, month, j-day+1));
 				}
 				else{
-				if(j-day+1 == now.getDate()){
-					html += "<td class='month-theme today'>"+ (j-day+1) +"</td>";
+					if(j-day+1 == now.getDate()){
+						html += "<td class='month-theme today'>"+ (j-day+1) +"</td>";
 					}
-				else{
-					html += "<td class='month-theme'>"+ (j-day+1) +"</td>";
+					else{
+						html += "<td class='month-theme'>"+ (j-day+1) +"</td>";
 					}
 				}
 			}
 			else{
-				html += "<td>"+ (j-totalDays-2) +"</td>";	
+				html += "<td>"+ (j-totalDays-day+1) +"</td>";	
 			}
 		}
 		html +="</tr>";
