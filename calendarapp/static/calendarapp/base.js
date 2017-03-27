@@ -23,19 +23,8 @@ $( document ).ready(function() {
 		$('.calendar')[0].innerHTML = 	getCalendar(selectedMonth, selectedYear);
 		show_popup();
 	});
-
-	//show popup
 	show_popup();
-	//close popup
-	$(document).click(function(event) { 
-    if(!$(event.target).closest('.date').length) {
-        if($('.popup').is(":visible")) {
-            $('.popup').hide('fast');
-            $('.popup-cont').html('');
-            console.log('jjjjjjj');
-	        }
-    }        
-	});
+	close_popup();
 	get_events_list();
 
 });
@@ -73,20 +62,33 @@ function eventDetails(id){
 
 function show_popup(){
 	$('.date').click(function(event){
+		$('.popup').hide('fast');
+  	$('.popup-cont').html('');
 		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
 			$(this).find('.popup-cont').html(popupHtml);
-			console.log($(this).attr('id'));
+			// console.log($(this).attr('id'));
 			var d = new Date($(this).attr('id'));
 			var long_date = dayName[d.getDay()]+', '+ d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
-			console.log(long_date);
+			// console.log(long_date);
 			$(this).find('.popup-header').html(long_date);
 			var input_date = inputDate(d);
-			console.log(input_date);
+			// console.log(input_date);
 			$(this).find('#start_date').val(input_date);
 			$(this).find('#end_date').val(input_date);
 			$('#event-submit').attr('onclick', 'validate("'+d+'")');
 			$('.popup').show('fast');
 		}
+	});
+}
+
+function close_popup(){
+	$(document).click(function(event) { 
+    if(!$(event.target).closest('.date').length) {
+        if($('.popup').is(":visible")) {
+            $('.popup').hide('fast');
+            $('.popup-cont').html('');
+	        }
+    }        
 	});
 }
 
@@ -148,6 +150,7 @@ function toggleTimeFields(e){
 		$('#all_day').parent().find('#start_time, #start_date, #end_time, #end_date').prop('disabled', false);
 	}
 }
+
 
 function closePopup(e){
 	$(e).closest('.popup').hide('fast');
@@ -375,7 +378,7 @@ function getCalendar(month, year, type='long') {
 		}
 		html +="</tr>";
 	}
-	console.log('jhgf')
+	// console.log('jhgf')
 	return html;
 }
 
