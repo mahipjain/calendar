@@ -11,7 +11,6 @@ from datetime import datetime
 #Wrote this function to check if a time slot is already booked.
 #Stopped using it because it causes problem while updating an event.
 def is_booked(s_datetime,e_datetime):
-	#events = Event.objects.filter(date=date).filter(end_time > start_time )
 	events = Event.objects.filter(Q(start_datetime__range = (s_datetime, e_datetime)) | Q(end_datetime__range = (s_datetime, e_datetime)))
 	print events
 	if events:
@@ -19,17 +18,27 @@ def is_booked(s_datetime,e_datetime):
 	else:
 		return False
 
+#Function to create new events as well as edit existing events
 @csrf_exempt
 def save_event(request, event_id = None):
-	print event_id
 	if request.method == 'POST':
 		event_form = EventForm(request.POST)
 		#print request.POST['start_date']
 		if event_form.is_valid():
-			s_date = request.POST['start_date']
-			e_date = request.POST['end_date']
-			s_time = request.POST['start_time']
-			e_time = request.POST['end_time']
+			all_day = request.POST['all_day']
+			print all_day
+			if all_day == "true":
+				print "all"
+				date = request.POST['date']
+				s_date = date
+				e_date = date
+				s_time = "00:00:00"
+				e_time = "23:59:59"
+			else:
+				s_date = request.POST['start_date']
+				e_date = request.POST['end_date']
+				s_time = request.POST['start_time']
+				e_time = request.POST['end_time']
 			print s_date, s_time, e_date, e_time
 			s_datetime = datetime.strptime(s_date+'-'+s_time, '%Y-%m-%d-%H:%M:%S')
 			e_datetime = datetime.strptime(e_date+'-'+e_time, '%Y-%m-%d-%H:%M:%S')
@@ -57,6 +66,7 @@ def save_event(request, event_id = None):
 	else:
 		return render(request, 'calendarapp/index.html')
 
+#Returns list of events on a particular date
 @csrf_exempt
 def events_list(request):
 	date = request.POST.get('date')
@@ -64,11 +74,12 @@ def events_list(request):
 	events = Event.objects.filter(start_datetime__date__lte = date).filter(end_datetime__date__gte = date).order_by('start_datetime')
 	events_list = []
 	for event in events:
+		start_time = event.start_datetime.strftime("%H:%M") + event.start_datetime.strftime("%p")[0].lower() 
 		temp = {
 				'id': event.id,
 				'name': event.name,
 				'location': event.location,
-				'start_time': str(event.start_datetime.time()),
+				'start_time': start_time,
 				'end_time': str(event.end_datetime.time()),
 				'description': event.description
 			}
@@ -76,6 +87,7 @@ def events_list(request):
 	events_json = json.dumps(events_list)
 	return JsonResponse(events_json, safe=False)
 
+#Returns details of a particular event
 @csrf_exempt
 def event_details(request, event_id):
 	event = get_object_or_404(Event, pk = event_id)
@@ -94,6 +106,7 @@ def event_details(request, event_id):
 	details_json = json.dumps(event_dict)
 	return JsonResponse(details_json, safe=False)
 
+#Function to delete an event
 @csrf_exempt
 def delete(request, event_id):
 	event = get_object_or_404(Event, pk = event_id)

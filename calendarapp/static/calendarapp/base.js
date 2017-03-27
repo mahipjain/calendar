@@ -1,3 +1,7 @@
+var nowDate = new Date();
+var selectedMonth = nowDate.getMonth();
+var selectedYear = nowDate.getFullYear();
+
 $( document ).ready(function() {
 	var now = new Date();
 	$('.calendar')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear());
@@ -5,31 +9,44 @@ $( document ).ready(function() {
 	$('#curr-month')[0].innerHTML = monthName[now.getMonth()];
 	$('#curr-year')[0].innerHTML = now.getFullYear();
 	startTime();
-	$('#prev-month').click(function(){
-		selectedMonth--;
-		if(selectedMonth==-1){
-			selectedMonth = 11;
-			selectedYear--;
-		}
-		$('.calendar')[0].innerHTML = getCalendar(selectedMonth, selectedYear);
-		show_popup();
-	});
-	$('#next-month').click(function(){
-		selectedMonth++;
-		if(selectedMonth==12){
-			selectedMonth = 0;
-			selectedYear++;
-		}
-		$('.calendar')[0].innerHTML = 	getCalendar(selectedMonth, selectedYear);
-		show_popup();
-	});
+	prevMonth();
+	nextMonth();
 	show_popup();
 	close_popup();
 	get_events_list();
 
 });
 
-function eventDetails(id){
+function prevMonth(){
+	$('.prev-month').click(function(){
+		console.log(selectedMonth);
+		selectedMonth--;
+		if(selectedMonth==-1){
+			selectedMonth = 11;
+			selectedYear--;
+		}
+		$('.calendar')[0].innerHTML = getCalendar(selectedMonth, selectedYear);
+		refresh();
+	});
+}
+
+
+function nextMonth(){
+	console.log(selectedMonth);
+	$('.next-month').click(function(){
+		selectedMonth++;
+		if(selectedMonth==12){
+			selectedMonth = 0;
+			selectedYear++;
+		}
+		$('.calendar')[0].innerHTML = 	getCalendar(selectedMonth, selectedYear);
+		refresh();
+	});
+}
+
+function eventDetails(id,event){
+	$('.popup').hide('fast');
+	$('.popup-cont').html('');
 	$.ajax({
 		url:'/event/'+id+'/',
 		success: function(data){
@@ -40,21 +57,24 @@ function eventDetails(id){
 													<div>\
 														<h3 class="popup-header">'+data.name+'</h3>';
 							if(data.location != ''){
-							eventPopup += '<p>Where</p>\
+							eventPopup += '<h4>Where</h4>\
 														<p>'+data.location+'</p>';
 							}
-							eventPopup +=	 '<p>When</p>\
+							eventPopup +=	 '<h4>When</h4>\
 														<p>'+data.start_datetime+' - '+data.end_datetime+'</p>';
 														
 							if(data.description != ''){
-							eventPopup += '<p>'+data.description+'</p>\
-														<p>Description</p>';
+							eventPopup += '<h4>Description</h4>\
+														<p>'+data.description+'</p>';
 							}
 							eventPopup += '</div>\
 													<input type="button" value="Delete" onclick="delete_event('+data.id+')">\
 													<input type="button" class="submit-btn" value="Edit" onclick="edit_event('+data.id+')">\
 												</div>';
 			$('#event'+id).parent().parent().parent().find('.popup-cont').html(eventPopup);
+			var clickX = $('#event'+id).offset().left;
+			var clickY = $('#event'+id).offset().top;
+			positionPopup(clickX, clickY);
 			$('.popup').show('fast');
 		}
 	});
@@ -62,23 +82,35 @@ function eventDetails(id){
 
 function show_popup(){
 	$('.date').click(function(event){
-		$('.popup').hide('fast');
-  	$('.popup-cont').html('');
 		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
+			$('.popup').hide('fast');
+  		$('.popup-cont').html('');
 			$(this).find('.popup-cont').html(popupHtml);
-			// console.log($(this).attr('id'));
 			var d = new Date($(this).attr('id'));
 			var long_date = dayName[d.getDay()]+', '+ d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
-			// console.log(long_date);
 			$(this).find('.popup-header').html(long_date);
 			var input_date = inputDate(d);
-			// console.log(input_date);
 			$(this).find('#start_date').val(input_date);
 			$(this).find('#end_date').val(input_date);
 			$('#event-submit').attr('onclick', 'validate("'+d+'")');
+			var clickY = event.pageY;
+			var clickX = event.pageX;
+			positionPopup(clickX, clickY);
 			$('.popup').show('fast');
 		}
 	});
+}
+
+function positionPopup(clickX, clickY){
+	var viewportH = $(window).height();
+	var viewportW = $(window).width();
+	console.log(clickY, viewportH);
+	if(clickY > viewportH - 400){
+		$('.popup').css('margin-top', (viewportH-clickY-420)+'px');
+	}
+	if(clickX > viewportW - 300){
+		$('.popup').css('margin-left', (viewportW-clickX-300)+'px');
+	}
 }
 
 function close_popup(){
@@ -126,6 +158,9 @@ function edit_event(event_id){
       $('#end_time').val(end_time);
       $('#description').val(data.description);
       $('#event-submit').attr('onclick','validate("'+d+'",'+data.id+')');
+      var clickX = $('#event'+event_id).offset().left;
+			var clickY = $('#event'+event_id).offset().top;
+			positionPopup(clickX, clickY);
 			$('.popup').show('fast');
 		}
 	})
@@ -138,6 +173,9 @@ function refresh(){
 		var d = $($elem).attr('id');
 		get_events_list(d);
 	}
+	show_popup();
+	// prevMonth();
+	// nextMonth();
 }
 
 function toggleTimeFields(e){
@@ -193,49 +231,6 @@ function get_events_list(date = ''){
 	});
 }
 
-function add_event(date, event_id=null){
-	var d = new Date(date);
-	// console.log(d);
-	var x = document.getElementById(d.toLocaleDateString('en-US'));
-	var name = $(x).find('#event_name')[0].value;
-	var location = $(x).find('#location')[0].value;
-	var start_date = new Date($(x).find('#start_date')[0].value);
-	start_date = inputDate(start_date);
-	var start_time = $(x).find('#start_time')[0].value;
-	var end_date = new Date($(x).find('#end_date')[0].value);
-	end_date = inputDate(end_date);
-	var end_time = $(x).find('#end_time')[0].value;
-	var description = $(x).find('#description')[0].value;
-	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-	console.log(d);
-	if(event_id) {
-		var url= '/update_event/'+event_id+'/';
-	}
-	else {
-		var url = '/';
-	}
-	$.ajax({
-		url: url,
-		type: 'POST',
-		data: {
-			// date: d,
-			name: name,
-			location: location,
-			start_date: start_date,
-			start_time: start_time + ':00',
-			end_date: end_date,
-			end_time: end_time + ':00',
-			description: description,
-		},
-		success: function(data){
-			console.log(data);
-			$('.popup').hide('fast');
-			$('.popup-cont').html('');
-			refresh();
-		}
-	})
-}
-
 function validate(date, event_id=null){
 	var d = new Date(date);
 	var x = document.getElementById(d.toLocaleDateString('en-US'));
@@ -258,6 +253,51 @@ function validate(date, event_id=null){
 	if(!error) add_event(date,event_id);
 }
 
+function add_event(date, event_id=null){
+	var d = new Date(date);
+	var x = document.getElementById(d.toLocaleDateString('en-US'));
+	var name = $(x).find('#event_name')[0].value;
+	var location = $(x).find('#location')[0].value;
+	var start_date = new Date($(x).find('#start_date')[0].value);
+	start_date = inputDate(start_date);
+	var start_time = $(x).find('#start_time')[0].value;
+	var end_date = new Date($(x).find('#end_date')[0].value);
+	end_date = inputDate(end_date);
+	var end_time = $(x).find('#end_time')[0].value;
+	var description = $(x).find('#description')[0].value;
+	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+	var all_day = $($(x).find('#all_day')[0]).prop('checked');
+	console.log(d);
+	if(event_id) {
+		var url= '/update_event/'+event_id+'/';
+	}
+	else {
+		var url = '/';
+	}
+	$.ajax({
+		url: url,
+		type: 'POST',
+		data: {
+			date: d,
+			name: name,
+			location: location,
+			start_date: start_date,
+			start_time: start_time + ':00',
+			end_date: end_date,
+			end_time: end_time + ':00',
+			description: description,
+			all_day: all_day,
+		},
+		success: function(data){
+			console.log(data);
+			$('.popup').hide('fast');
+			$('.popup-cont').html('');
+			refresh();
+		}
+	})
+}
+
+
 function noOfDays(month, year) {
 	return new Date(year, month+1, 0).getDate();
 }
@@ -266,9 +306,6 @@ function relativeDate(date, delta) {
 	date.setDate(delta);
 	return date.getDate();
 }
-var now = new Date();
-var selectedMonth = now.getMonth();
-var selectedYear = now.getFullYear();
 
 var monthName = new Array();
 	monthName[0] = "January";
@@ -289,7 +326,7 @@ var dayName = new Array();
 	dayName[1] = "Monday";
 	dayName[2] = "Tuesday";
 	dayName[3] = "Wednesday";
-	dayName[4] = "Thrusday";
+	dayName[4] = "Thursday";
 	dayName[5] = "Friday";
 	dayName[6] = "Saturday";
 
@@ -323,7 +360,7 @@ function getCalendar(month, year, type='long') {
 	if(type=='long'){
 	var html = "<tr class='day-names'>";
 	for(var x = 0; x<7; x++){
-		if(x==day && month == now.getMonth() && year == now.getFullYear()) html += "<th class='active-day'>"+dayName[x]+"</th>";
+		if(x==now.getDay() && month == now.getMonth() && year == now.getFullYear()) html += "<th class='active-day'>"+dayName[x]+"</th>";
 		else html += "<th>"+dayName[x]+"</th>";
 	}
 			
@@ -378,23 +415,17 @@ function getCalendar(month, year, type='long') {
 		}
 		html +="</tr>";
 	}
-	// console.log('jhgf')
 	return html;
 }
 
 function startTime() {
     var today = new Date();
-    var h = today.getHours();
-    var m = today.getMinutes();
-    m = checkTime(m);
+    var h = today.toLocaleString('en-US').split(' ')[1].split(':')[0];
+    var m = today.toLocaleString('en-US').split(' ')[1].split(':')[1];
+    var period = today.toLocaleString('en-US').split(' ')[2];
     document.getElementById('clock').innerHTML =
-    h + ":" + m;
+    h + ":" + m + '<span>'+period+'</span>';
     var t = setTimeout(startTime, 60000);
-}
-
-function checkTime(i) {
-    if (i < 10) {i = "0" + i};
-    return i;
 }
 
 function inputDate(date){

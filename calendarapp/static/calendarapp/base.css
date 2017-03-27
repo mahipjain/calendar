@@ -6,7 +6,7 @@ body{
     height: 100%;
     display: flex;
     font-family: 'Roboto', sans-serif;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .left-container{
@@ -31,38 +31,22 @@ body{
     z-index: 1;
     border: 1px solid #ff8787;
     max-width: 300px;
+    margin-left: 20px;
 }
 
 /*.popup::after {
     content: "";
     position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
+    top: 50%;
+    margin-left: -18px;
     border-width: 5px;
     border-style: solid;
-    border-color: #555 transparent transparent transparent;
+    border-color: transparent #ff8787 transparent transparent;
 }*/
 
 .popup *{
 	display: block;
 }
-
-/*.popup .show {
-    visibility: visible;
-    -webkit-animation: fadeIn 1s;
-    animation: fadeIn 1s
-}
-
-@-webkit-keyframes fadeIn {
-    from {opacity: 0;} 
-    to {opacity: 1;}
-}
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity:1 ;}
-}*/
 
 .popup-header{
     color: #ff8787;
@@ -106,6 +90,12 @@ body{
     font-size: 60px;
     text-align: center;
     font-weight: 100;
+}
+
+#clock span{
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: lowercase;
 }
 
 #todays-events h3{
@@ -186,7 +176,7 @@ li{
     border-bottom: 1px solid #e5e6e7;
     width: 14%;
     padding-left: 2px;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .main-container .day-names{
@@ -227,7 +217,7 @@ textarea{
 
 .error{
     font-size: 10px;
-    color: red;
+    color: red !important;
     padding: 0;
     margin: 0;
     margin-bottom: 4px;
@@ -235,11 +225,12 @@ textarea{
 
 .float-right{
     float: right;
+    margin-right: 10px;
 }
 
 .active-day{
     background-color: #f8f8f8;
-    font-weight: 400 !important;
+    font-weight: bold;
     border-bottom: 3px solid #2ed39e !important;
     color: #777777;
 }
@@ -252,4 +243,18 @@ textarea{
 .main-container .today li{
     color: #2ed39e;
     background-color: #fff;
+}
+
+.popup h4{
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.popup p{
+    margin: 0;
+    color: #777777;
+}
+
+.popup div{
+    margin-bottom: 20px;
 }
