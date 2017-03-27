@@ -21,6 +21,8 @@ $( document ).ready(function() {
 		}
 		$('.calendar')[0].innerHTML = 	getCalendar(selectedMonth, selectedYear);
 	});
+
+	//show popup
 	$('.date').click(function(event){
 		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
 			$(this).find('.popup-cont').html(popupHtml);
@@ -28,6 +30,10 @@ $( document ).ready(function() {
 			var d = new Date($(this).attr('id'));
 			var long_date = d.getDate() + ' ' + monthName[d.getMonth()] + ' ' + d.getFullYear();
 			$(this).find('.popup-date').html(long_date);
+			var input_date = inputDate(d);
+			console.log(input_date);
+			$(this).find('#start_date').val(input_date);
+			$(this).find('#end_date').val(input_date);
 			$('#event-submit').attr('onclick', 'validate("'+d+'")');
 			$('.popup').show('fast');
 		}
@@ -42,23 +48,99 @@ $( document ).ready(function() {
 	        }
     }        
 	});
-
 	get_events_list();
+
 });
+
+function eventDetails(id){
+	$.ajax({
+		url:'/event/'+id+'/',
+		success: function(data){
+			data = JSON.parse(data);
+			console.log(data);
+			var eventPopup = '<div class="popup">\
+													<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
+													<div>\
+														<h3 class="popup-header">'+data.name+'</h3>';
+							if(data.location != ''){
+							eventPopup += '<p>Where</p>\
+														<p>'+data.location+'</p>';
+							}
+							eventPopup +=	 '<p>When</p>\
+														<p>'+data.start_datetime+' - '+data.end_datetime+'</p>';
+														
+							if(data.description != ''){
+							eventPopup += '<p>'+data.description+'</p>\
+														<p>Description</p>';
+							}
+							eventPopup += '</div>\
+													<input type="button" value="Delete" onclick="delete_event('+data.id+')">\
+													<input type="button" class="submit-btn" value="Edit" onclick="edit_event('+data.id+')">\
+												</div>';
+			$('#event'+id).parent().parent().find('.popup-cont').html(eventPopup);
+			$('.popup').show('fast');
+		}
+	});
+}
+
+function delete_event(event_id){
+	$.ajax({
+		url: '/delete/'+event_id+'/',
+		success: function(){
+			$('.popup').hide('fast');
+      $('.popup-cont').html('');
+		}
+	})
+}
+
+function edit_event(event_id){
+	$.ajax({
+		url:'/event/'+event_id+'/',
+		success: function(data){
+			data = JSON.parse(data);
+			$('.popup').hide('fast');
+      $('.popup-cont').html('');
+      var d = $('#event'+event_id).closest('.date').attr('id');
+      d = new Date(d);
+      console.log(d);
+      $('#event'+event_id).parent().parent().find('.popup-cont').html(popupHtml);
+      $('#event_name').val(data.name);
+      $('#location').val(data.location);
+      $('#start_date').val(data.start_date);
+      $('#start_time').val(data.start_time);
+      $('#end_date').val(data.end_date);
+      $('#end_time').val(data.end_time);
+      $('#description').val(data.description);
+      $('#event-submit').attr('onclick','validate("'+d+'",'+data.id+')');
+			$('.popup').show('fast');
+		}
+	})
+}
+
+function toggleTimeFields(e){
+	console.log(e);
+	var all_day = $(e).prop('checked');
+	if(all_day){
+		$('#all_day').parent().find('#start_time, #start_date, #end_time, #end_date').prop('disabled', true);
+	}
+	else{
+		$('#all_day').parent().find('#start_time, #start_date, #end_time, #end_date').prop('disabled', false);
+	}
+}
 
 function closePopup(e){
 	$(e).closest('.popup').hide('fast');
 	$(e).closest('.popup-cont').html('');
-	console.log(e);
+	// console.log(e);
 }
 
 function get_events_list(date = ''){
-	console.log(date);
+	// console.log(date);
 	if(date!='') var d = new Date(date);
 	else d = new Date();
 	var elem_id = d.toLocaleDateString('en-US');
 	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-	console.log(d);
+	// console.log(d);
 	$.ajax({
 		url: '/events_list/',
 		type: 'POST',
@@ -67,11 +149,18 @@ function get_events_list(date = ''){
 		},
 		success: function(data){
 			data = JSON.parse(data);
-			console.log(data.length);
+			// console.log(data);
+			// console.log(data.length);
 			var html = '<ul class="events-list">';
 			for(var i =0; i<data.length; i++){
-				html += '<li><span class="event-name">\
+				if(date !=''){
+				html += '<li id="event'+data[i].id+'" onclick="eventDetails('+data[i].id+')"><span class="event-name">\
 				'+data[i].name+'</span><span class="event-time">'+data[i].start_time+'</span></li>';
+				}
+				else{
+					html += '<li><span class="event-name">\
+				'+data[i].name+'</span><span class="event-time">'+data[i].start_time+'</span></li>';
+				}
 			}
 			html+= '</ul>';
 			if(date != '') $('[id="'+elem_id+'"]').append(html);
@@ -80,26 +169,40 @@ function get_events_list(date = ''){
 	});
 }
 
-function add_event(date){
+function add_event(date, event_id=null){
 	var d = new Date(date);
 	// console.log(d);
 	var x = document.getElementById(d.toLocaleDateString('en-US'));
 	var name = $(x).find('#event_name')[0].value;
 	var location = $(x).find('#location')[0].value;
+	var start_date = new Date($(x).find('#start_date')[0].value);
+	start_date = inputDate(start_date);
 	var start_time = $(x).find('#start_time')[0].value;
+	var end_date = new Date($(x).find('#end_date')[0].value);
+	end_date = inputDate(end_date);
 	var end_time = $(x).find('#end_time')[0].value;
 	var description = $(x).find('#description')[0].value;
 	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
 	console.log(d);
+	if(event_id) {
+		var url= '/update_event/'+event_id+'/';
+	}
+	else {
+		var url = '/';
+		// start_time += ':00';
+		end_time +=':00';
+	}
 	$.ajax({
-		url: '/',
+		url: url,
 		type: 'POST',
 		data: {
-			date: d,
+			// date: d,
 			name: name,
 			location: location,
+			start_date: start_date,
 			start_time: start_time + ':00',
-			end_time: end_time + ':00',
+			end_date: end_date,
+			end_time: end_time,
 			description: description,
 		},
 		success: function(data){
@@ -108,9 +211,10 @@ function add_event(date){
 	})
 }
 
-function validate(date){
+function validate(date, event_id=null){
 	var d = new Date(date);
 	var x = document.getElementById(d.toLocaleDateString('en-US'));
+	console.log(x);
 	var name = $(x).find('#event_name')[0].value;
 	var location = $(x).find('#location')[0].value;
 	var start_time = $(x).find('#start_time')[0].value;
@@ -120,13 +224,13 @@ function validate(date){
 	var error = false;
 	if(!(name.length > 0)){
 		error = true;
-		$(x).find('#event_name')[0].insertAfter('Event Name is required.');
+		$('<p class="error">Event Name is required.</p>').insertAfter($(x).find('#event_name')[0]);
 	}
 	if(start_time=="" && end_time =="" && all_day == false){
 		error = true;
-		$(x).find('#all_day')[0].insertAfter('Time is required.');		
+		$('<p class="error">Time is required.</p>').insertAfter($(x).find('#all_day')[0]);
 	}
-	if(!error) add_event(date);
+	if(!error) add_event(date,event_id);
 }
 
 function noOfDays(month, year) {
@@ -158,7 +262,7 @@ monthName[11] = "December";
 var popupHtml = '<div class="popup">\
 									<form>\
 										<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
-										<h3 class="popup-date">Wednesday, 15 June 2016</h3>\
+										<h3 class="popup-header">Wednesday, 15 June 2016</h3>\
 										<input type="text" id="event_name" placeholder="Event Name">\
 										<input type="text" id="location" placeholder="Location">\
 										<label>Starts</label>\
@@ -167,10 +271,10 @@ var popupHtml = '<div class="popup">\
 										<label>Ends</label>\
 										<input type="date" id="end_date">\
 										<input type="time" id="end_time"><br>\
-										<input type="checkbox" id="all_day">All Day\
+										<input type="checkbox" id="all_day" onclick="toggleTimeFields(this)">All Day\
 										<label>Description</label>\
 										<textarea id="description"></textarea>\
-										<input type="button" value="Cancel">\
+										<input type="button" value="Cancel" onclick="closePopup(this)">\
 										<input type="button" value="Save" id="event-submit" class="submit-btn">\
 									</form>\
 								</div>';
@@ -221,6 +325,7 @@ function getCalendar(month, year, type='long') {
 						html += "<td id='"+new Date(year, month, j-day+1).toLocaleDateString('en-US')+"'\
 						class='date month-theme'><div>"+ (j-day+1) +"</div><div class='popup-cont'></div></td>";	
 					}
+					get_events_list(new Date(year, month, j-day+1));
 				}
 				else{
 				if(j-day+1 == now.getDate()){
@@ -237,6 +342,7 @@ function getCalendar(month, year, type='long') {
 		}
 		html +="</tr>";
 	}
+	console.log('jhgf')
 	return html;
 }
 
@@ -253,4 +359,13 @@ function startTime() {
 function checkTime(i) {
     if (i < 10) {i = "0" + i};
     return i;
+}
+
+function inputDate(date){
+	var input_date = date.getFullYear()+'-';
+	if(date.getMonth()<9) input_date +='0';
+	input_date += (date.getMonth()+1)+'-';
+	if(date.getDate()<10) input_date +='0';
+	input_date += date.getDate();
+	return input_date;
 }
