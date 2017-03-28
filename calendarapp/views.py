@@ -12,7 +12,6 @@ from datetime import datetime
 #Stopped using it because it causes problem while updating an event.
 def is_booked(s_datetime,e_datetime):
 	events = Event.objects.filter(Q(start_datetime__range = (s_datetime, e_datetime)) | Q(end_datetime__range = (s_datetime, e_datetime)))
-	print events
 	if events:
 		return True
 	else:
@@ -23,12 +22,9 @@ def is_booked(s_datetime,e_datetime):
 def save_event(request, event_id = None):
 	if request.method == 'POST':
 		event_form = EventForm(request.POST)
-		#print request.POST['start_date']
 		if event_form.is_valid():
 			all_day = request.POST['all_day']
-			print all_day
 			if all_day == "true":
-				print "all"
 				date = request.POST['date']
 				s_date = date
 				e_date = date
@@ -39,7 +35,6 @@ def save_event(request, event_id = None):
 				e_date = request.POST['end_date']
 				s_time = request.POST['start_time']
 				e_time = request.POST['end_time']
-			print s_date, s_time, e_date, e_time
 			s_datetime = datetime.strptime(s_date+'-'+s_time, '%Y-%m-%d-%H:%M:%S')
 			e_datetime = datetime.strptime(e_date+'-'+e_time, '%Y-%m-%d-%H:%M:%S')
 			#if is_booked(s_datetime, e_datetime):
@@ -70,7 +65,6 @@ def save_event(request, event_id = None):
 @csrf_exempt
 def events_list(request):
 	date = request.POST.get('date')
-	#print date
 	events = Event.objects.filter(start_datetime__date__lte = date).filter(end_datetime__date__gte = date).order_by('start_datetime')
 	events_list = []
 	for event in events:
@@ -95,8 +89,8 @@ def event_details(request, event_id):
 					'id': event.id,
 					'name': event.name,
 					'location': event.location,
-					'start_datetime': event.start_datetime.strftime("%I:%M %p, %A, %b %y"),
-					'end_datetime': event.end_datetime.strftime("%I:%M %p, %A, %b %y"),
+					'start_datetime': event.start_datetime.strftime("%I:%M %p, %A, %b %d"),
+					'end_datetime': event.end_datetime.strftime("%I:%M %p, %A, %b %d"),
 					'start_date': event.start_datetime.strftime("%Y-%m-%d"),
 					'end_date': event.end_datetime.strftime("%Y-%m-%d"),
 					'start_time': event.start_datetime.strftime("%H:%M:%S"),

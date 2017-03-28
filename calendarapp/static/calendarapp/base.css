@@ -34,16 +34,6 @@ body{
     margin-left: 20px;
 }
 
-/*.popup::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    margin-left: -18px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent #ff8787 transparent transparent;
-}*/
-
 .popup *{
 	display: block;
 }
@@ -98,7 +88,7 @@ body{
     text-transform: lowercase;
 }
 
-#todays-events h3{
+.left-container h3{
     font-size: 12px;
     font-weight: normal;
     margin-left: 30px;

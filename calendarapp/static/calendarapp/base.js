@@ -1,9 +1,32 @@
-var nowDate = new Date();
-var selectedMonth = nowDate.getMonth();
-var selectedYear = nowDate.getFullYear();
+//Global Variables
+var now = new Date();
+var selectedMonth = now.getMonth();
+var selectedYear = now.getFullYear();
+var monthName = ["January", "February", "March", "April", "May", "June",
+"July", "August", "September", "October", "November", "December"];
+var dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+"Friday", "Saturday"];
+var popupHtml = '<div class="popup">\
+									<form>\
+										<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
+										<h3 class="popup-header">Wednesday, 15 June 2016</h3>\
+										<input type="text" id="event_name" placeholder="Event Name">\
+										<input type="text" id="location" placeholder="Location">\
+										<label>Starts</label>\
+										<input type="date" id="start_date">\
+										<input type="time" id="start_time">\
+										<label>Ends</label>\
+										<input type="date" id="end_date">\
+										<input type="time" id="end_time"><br>\
+										<input type="checkbox" id="all_day" onclick="toggleTimeFields(this)">All Day\
+										<label>Description</label>\
+										<textarea id="description"></textarea>\
+										<input type="button" value="Cancel" onclick="closePopup(this)">\
+										<input type="button" value="Save" id="event-submit" class="submit-btn">\
+									</form>\
+								</div>';
 
 $( document ).ready(function() {
-	var now = new Date();
 	$('.calendar')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear());
 	$('#curr-month-cal')[0].innerHTML = getCalendar(now.getMonth(), now.getFullYear(), 'small');
 	$('#curr-month')[0].innerHTML = monthName[now.getMonth()];
@@ -14,12 +37,11 @@ $( document ).ready(function() {
 	show_popup();
 	close_popup();
 	get_events_list();
-
 });
 
+//load previous month calendar
 function prevMonth(){
 	$('.prev-month').click(function(){
-		console.log(selectedMonth);
 		selectedMonth--;
 		if(selectedMonth==-1){
 			selectedMonth = 11;
@@ -30,9 +52,8 @@ function prevMonth(){
 	});
 }
 
-
+//load previous month calendar
 function nextMonth(){
-	console.log(selectedMonth);
 	$('.next-month').click(function(){
 		selectedMonth++;
 		if(selectedMonth==12){
@@ -44,6 +65,7 @@ function nextMonth(){
 	});
 }
 
+//get event details from backend and displays it
 function eventDetails(id,event){
 	$('.popup').hide('fast');
 	$('.popup-cont').html('');
@@ -51,7 +73,6 @@ function eventDetails(id,event){
 		url:'/event/'+id+'/',
 		success: function(data){
 			data = JSON.parse(data);
-			console.log(data);
 			var eventPopup = '<div class="popup">\
 													<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
 													<div>\
@@ -80,6 +101,7 @@ function eventDetails(id,event){
 	});
 }
 
+//to show popup on click on any '.date' element
 function show_popup(){
 	$('.date').click(function(event){
 		if(!$(event.target).closest('.popup').length && !$(event.target).closest('ul').length){
@@ -101,10 +123,10 @@ function show_popup(){
 	});
 }
 
+//position popup if trys to go out of viewport
 function positionPopup(clickX, clickY){
 	var viewportH = $(window).height();
 	var viewportW = $(window).width();
-	console.log(clickY, viewportH);
 	if(clickY > viewportH - 400){
 		$('.popup').css('margin-top', (viewportH-clickY-420)+'px');
 	}
@@ -113,6 +135,7 @@ function positionPopup(clickX, clickY){
 	}
 }
 
+//closes popup on document click
 function close_popup(){
 	$(document).click(function(event) { 
     if(!$(event.target).closest('.date').length) {
@@ -124,6 +147,7 @@ function close_popup(){
 	});
 }
 
+//deletes event
 function delete_event(event_id){
 	$.ajax({
 		url: '/delete/'+event_id+'/',
@@ -135,6 +159,7 @@ function delete_event(event_id){
 	})
 }
 
+//shows popup to edit an event
 function edit_event(event_id){
 	$.ajax({
 		url:'/event/'+event_id+'/',
@@ -144,7 +169,6 @@ function edit_event(event_id){
       $('.popup-cont').html('');
       var d = $('#event'+event_id).closest('.date').attr('id');
       d = new Date(d);
-      console.log(d);
       $('#event'+event_id).parent().parent().parent().find('.popup-cont').html(popupHtml);
       $('#event_name').val(data.name);
       $('#location').val(data.location);
@@ -166,6 +190,7 @@ function edit_event(event_id){
 	})
 }
 
+//refresh events
 function refresh(){
 	get_events_list();
 	for(var x = 0; x < $('.date').length; x++){
@@ -174,12 +199,10 @@ function refresh(){
 		get_events_list(d);
 	}
 	show_popup();
-	// prevMonth();
-	// nextMonth();
 }
 
+//disable/enable according to if "all day" is selected or not
 function toggleTimeFields(e){
-	console.log(e);
 	var all_day = $(e).prop('checked');
 	if(all_day){
 		$('#all_day').parent().find('#start_time, #start_date, #end_time, #end_date').prop('disabled', true);
@@ -190,19 +213,18 @@ function toggleTimeFields(e){
 }
 
 
+//close popup on clicking 'x' button
 function closePopup(e){
 	$(e).closest('.popup').hide('fast');
 	$(e).closest('.popup-cont').html('');
-	// console.log(e);
 }
 
+//gets and displays events on calendar
 function get_events_list(date = ''){
-	// console.log(date);
 	if(date!='') var d = new Date(date);
 	else d = new Date();
 	var elem_id = d.toLocaleDateString('en-US');
 	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-	// console.log(d);
 	$.ajax({
 		url: '/events_list/',
 		type: 'POST',
@@ -211,8 +233,6 @@ function get_events_list(date = ''){
 		},
 		success: function(data){
 			data = JSON.parse(data);
-			// console.log(data);
-			// console.log(data.length);
 			var html = '<ul class="events-list">';
 			for(var i =0; i<data.length; i++){
 				if(date !=''){
@@ -231,10 +251,10 @@ function get_events_list(date = ''){
 	});
 }
 
+//validate data before adding/editing event
 function validate(date, event_id=null){
 	var d = new Date(date);
 	var x = document.getElementById(d.toLocaleDateString('en-US'));
-	console.log(x);
 	var name = $(x).find('#event_name')[0].value;
 	var location = $(x).find('#location')[0].value;
 	var start_time = $(x).find('#start_time')[0].value;
@@ -253,6 +273,7 @@ function validate(date, event_id=null){
 	if(!error) add_event(date,event_id);
 }
 
+//used to save new/edited event if its valid
 function add_event(date, event_id=null){
 	var d = new Date(date);
 	var x = document.getElementById(d.toLocaleDateString('en-US'));
@@ -267,7 +288,6 @@ function add_event(date, event_id=null){
 	var description = $(x).find('#description')[0].value;
 	d = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
 	var all_day = $($(x).find('#all_day')[0]).prop('checked');
-	console.log(d);
 	if(event_id) {
 		var url= '/update_event/'+event_id+'/';
 	}
@@ -289,7 +309,6 @@ function add_event(date, event_id=null){
 			all_day: all_day,
 		},
 		success: function(data){
-			console.log(data);
 			$('.popup').hide('fast');
 			$('.popup-cont').html('');
 			refresh();
@@ -297,59 +316,18 @@ function add_event(date, event_id=null){
 	})
 }
 
-
 function noOfDays(month, year) {
 	return new Date(year, month+1, 0).getDate();
 }
 
+//returns dates of previous month
 function relativeDate(date, delta) {
 	date.setDate(delta);
 	return date.getDate();
 }
 
-var monthName = new Array();
-	monthName[0] = "January";
-	monthName[1] = "February";
-	monthName[2] = "March";
-	monthName[3] = "April";
-	monthName[4] = "May";
-	monthName[5] = "June";
-	monthName[6] = "July";
-	monthName[7] = "August";
-	monthName[8] = "September";
-	monthName[9] = "October";
-	monthName[10] = "November";
-	monthName[11] = "December";
-
-var dayName = new Array();
-	dayName[0] = "Sunday";
-	dayName[1] = "Monday";
-	dayName[2] = "Tuesday";
-	dayName[3] = "Wednesday";
-	dayName[4] = "Thursday";
-	dayName[5] = "Friday";
-	dayName[6] = "Saturday";
-
-var popupHtml = '<div class="popup">\
-									<form>\
-										<i class="fa fa-times close-btn" aria-hidden="true" onclick="closePopup(this)"></i>\
-										<h3 class="popup-header">Wednesday, 15 June 2016</h3>\
-										<input type="text" id="event_name" placeholder="Event Name">\
-										<input type="text" id="location" placeholder="Location">\
-										<label>Starts</label>\
-										<input type="date" id="start_date">\
-										<input type="time" id="start_time">\
-										<label>Ends</label>\
-										<input type="date" id="end_date">\
-										<input type="time" id="end_time"><br>\
-										<input type="checkbox" id="all_day" onclick="toggleTimeFields(this)">All Day\
-										<label>Description</label>\
-										<textarea id="description"></textarea>\
-										<input type="button" value="Cancel" onclick="closePopup(this)">\
-										<input type="button" value="Save" id="event-submit" class="submit-btn">\
-									</form>\
-								</div>';
-
+//loads calendar of a particular month/
+//'long' type for main calendar, else (or 'short') for calendar in left container
 function getCalendar(month, year, type='long') {
 	$('#month')[0].innerHTML = monthName[month];
 	$('#year')[0].innerHTML = year;
@@ -418,6 +396,7 @@ function getCalendar(month, year, type='long') {
 	return html;
 }
 
+//clock in left container
 function startTime() {
     var today = new Date();
     var h = today.toLocaleString('en-US').split(' ')[1].split(':')[0];
@@ -428,6 +407,7 @@ function startTime() {
     var t = setTimeout(startTime, 60000);
 }
 
+//converts javascript date to format used in html date type input
 function inputDate(date){
 	var input_date = date.getFullYear()+'-';
 	if(date.getMonth()<9) input_date +='0';
