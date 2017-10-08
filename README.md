@@ -1,0 +1,1 @@
+This a calendar app made in Django that allows users to create and manage events.
